@@ -9,6 +9,8 @@ function StatInput({ label, name, value, onChange }) {
         name={name}
         value={value}
         onChange={e => onChange(name, Number(e.target.value))}
+        min="0"
+        placeholder="Enter value"
       />
     </div>
   );

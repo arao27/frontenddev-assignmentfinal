@@ -1,14 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStats } from '../contexts/StatsContext';
 import StatInput from '../components/StatInput';
 import MuscleMap from '../components/MuscleMap';
 
 function StatsPage() {
   const { stats, updateStat } = useStats();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Placeholder for future API integration
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // Example: fetch('/api/user/stats')
+        // const response = await fetch('/api/user/stats');
+        // const data = await response.json();
+        // update stats from API
+      } catch (err) {
+        setError('Failed to load stats');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, [updateStat]);
 
   return (
     <div style={{ padding: '16px' }}>
       <h2>Your Stats</h2>
+      {loading && <p>Loading stats...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <div style={{ marginBottom: '16px' }}>
         <label>Gender: </label>

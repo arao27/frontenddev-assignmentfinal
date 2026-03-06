@@ -7,6 +7,7 @@ function HomePage() {
       <p>
         Track your lifts, rank your muscles, and see your progress on a visual muscle map.
       </p>
+      {/* Future enhancement: Show user name or personalized message when logged in */}
     </div>
   );
 }

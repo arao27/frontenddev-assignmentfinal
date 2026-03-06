@@ -19,6 +19,9 @@ export const StatsProvider = ({ children }) => {
     setStats(prev => ({ ...prev, [name]: value }));
   };
 
+  // Placeholder for future API integration: fetch stats from server
+  // const fetchStats = async () => { ... }
+
   return (
     <StatsContext.Provider value={{ stats, updateStat }}>
       {children}
