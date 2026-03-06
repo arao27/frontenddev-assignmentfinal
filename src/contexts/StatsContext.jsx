@@ -1,36 +1,63 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
-const StatsContext = createContext();
+const AuthContext = createContext();
 
-export const StatsProvider = ({ children }) => {
-  const [stats, setStats] = useState({
-    gender: 'male',
-    bodyweight: 70,
-    bench: 0,
-    squat: 0,
-    deadlift: 0,
-    dips: 0,
-    pullup: 0,
-    ohp: 0,
-    bicepCurl: 0,
-  });
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const updateStat = (name, value) => {
-    setStats(prev => ({ ...prev, [name]: value }));
+  // On mount, check localStorage for JWT token
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+    }
+    setLoading(false);
+  }, []);
+
+  const login = async (username, password) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { username, password });
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Login failed' };
+    }
   };
 
-  // Placeholder for future API integration: fetch stats from server
-  // const fetchStats = async () => { ... }
+  const register = async (username, password) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, { username, password });
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Registration failed' };
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
 
   return (
-    <StatsContext.Provider value={{ stats, updateStat }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
-    </StatsContext.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export const useStats = () => {
-  const context = useContext(StatsContext);
-  if (!context) throw new Error('useStats must be used within StatsProvider');
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
