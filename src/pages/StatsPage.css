@@ -1,0 +1,44 @@
+.stats-page {
+  display: flex;
+  gap: 40px;
+  padding: 40px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  min-height: 80vh;
+}
+
+/* LEFT COLUMN */
+.stats-left {
+  flex: 0 0 30%;              /* fixed 30% width */
+  border-right: 2px solid #ccc; /* divider */
+  padding-right: 30px;
+  box-sizing: border-box;
+}
+
+.stats-left .input-group {
+  margin-bottom: 20px;
+}
+
+.stats-left label {
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+/* RIGHT COLUMN */
+.stats-right {
+  flex: 1;                     /* take remaining width */
+  padding-left: 30px;
+  box-sizing: border-box;
+}
+
+/* Optional: style the inputs for better spacing */
+.stats-right input,
+.stats-left select,
+.stats-left input {
+  width: 100%;
+  padding: 6px 8px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  box-sizing: border-box;
+}

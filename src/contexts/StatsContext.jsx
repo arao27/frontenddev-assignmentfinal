@@ -1,63 +1,48 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 
-const AuthContext = createContext();
+// Initial default stats
+const DEFAULT_STATS = {
+  gender: 'male',
+  bodyweight: null,
+  bench: null,
+  squat: null,
+  deadlift: null,
+  dips: null,
+  pullup: null,
+  ohp: null,
+  bicepCurl: null,
+};
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+const StatsContext = createContext();
 
-  // On mount, check localStorage for JWT token
+export function StatsProvider({ children }) {
+  const [stats, setStats] = useState(() => {
+    try {
+      const saved = localStorage.getItem('stats');
+      return saved ? JSON.parse(saved) : DEFAULT_STATS;
+    } catch (e) {
+      console.error('Failed to parse stats from localStorage', e);
+      return DEFAULT_STATS;
+    }
+  });
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    if (token && userData) {
-      setUser(JSON.parse(userData));
-    }
-    setLoading(false);
-  }, []);
+    localStorage.setItem('stats', JSON.stringify(stats));
+  }, [stats]);
 
-  const login = async (username, password) => {
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { username, password });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
-      return { success: true };
-    } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Login failed' };
-    }
-  };
-
-  const register = async (username, password) => {
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, { username, password });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
-      return { success: true };
-    } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Registration failed' };
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  const updateStat = (key, value) => {
+    setStats(prev => ({ ...prev, [key]: value }));
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <StatsContext.Provider value={{ stats, updateStat }}>
       {children}
-    </AuthContext.Provider>
+    </StatsContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+export const useStats = () => {
+  const context = useContext(StatsContext);
+  if (!context) throw new Error('useStats must be used within StatsProvider');
   return context;
 };

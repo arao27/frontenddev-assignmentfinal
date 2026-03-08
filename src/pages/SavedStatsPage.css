@@ -1,0 +1,71 @@
+/* Container for the whole page */
+.saved-page {
+  display: flex;
+  justify-content: space-between;
+  padding: 40px;
+  gap: 40px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  min-height: 80vh;
+}
+
+/* LEFT SIDE: Rank Tiers */
+.rank-tiers {
+  width: 40%;
+  border-right: 2px solid #ccc;
+  padding-right: 30px;
+}
+
+.rank-tiers h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.tier {
+  margin-bottom: 12px;
+  font-size: 18px;
+  color: #555;
+}
+
+/* RIGHT SIDE: User Rank */
+.user-rank {
+  width: 60%;
+  padding-left: 30px;
+}
+
+.user-rank h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.rank-display {
+  font-size: 36px;
+  font-weight: bold;
+  margin: 20px 0;
+  color: #0077cc;
+}
+
+.user-rank h3 {
+  font-size: 20px;
+  margin-top: 20px;
+  color: #333;
+}
+
+.percent-wrapper {
+  margin-top: 10px;
+  font-size: 22px;       /* base size for text */
+  color: #cc3300;
+}
+
+.percent-number {
+  font-size: 36px;       /* bigger */
+  font-weight: bold;      /* bold */
+  margin-right: 5px;
+}
+
+.percent-text {
+  font-size: 22px;       /* smaller */
+  font-weight: normal;
+}

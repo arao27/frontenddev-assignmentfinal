@@ -15,8 +15,9 @@ function Navigation() {
   return (
     <nav style={{ padding: '16px', borderBottom: '1px solid #ccc' }}>
       <Link to="/" style={linkStyle('/')}>Home</Link>
-      <Link to="/stats" style={linkStyle('/stats')}>Your Stats</Link>
-      {user && <Link to="/saved" style={linkStyle('/saved')}>Saved Stats</Link>}
+     <Link to="/bodymap" style={linkStyle('/bodymap')}>Muscle Map</Link>
+      <Link to="/stats" style={linkStyle('/stats')}>Stats Input</Link>
+      {user && <Link to="/saved" style={linkStyle('/saved')}>Global Comparison</Link>}
       {!user ? (
         <Link to="/login" style={linkStyle('/login')}>Login</Link>
       ) : (

@@ -1,75 +1,130 @@
-// src/utils/calculateRanks.js
-export function calculateRanks(stats) {
-  const { bodyweight, bench, squat, deadlift, dips, pullup, ohp, bicepCurl } = stats;
+/// Ranks
+export const RANKS = ["Beginner", "Novice", "Intermediate", "Advanced", "Elite", "Olympian"];
 
-  const muscles = {
-    chest: 0,
-    back: 0,
-    shoulders: 0,
-    biceps: 0,
-    triceps: 0,
-    legs: 0,
-    hams: 0,
-    forearms: 0,
+// Convert lbs to kg
+const toKg = (value, unit) => unit === 'lbs' ? value / 2.20462 : value;
+
+// Calculate rank per exercise
+export const calculateRank = (exercise, value, bodyweight, unit = 'kg') => {
+  if (value == null || value === '' || bodyweight == null || bodyweight === '') return 0; // Beginner
+
+  const valKg = toKg(value, unit);
+  const bwKg = toKg(bodyweight, unit);
+  const ratio = valKg / bwKg;
+
+  switch (exercise) {
+    case 'bench':
+      if (ratio < 1.0) return 0;
+      if (ratio < 1.25) return 1;
+      if (ratio < 1.5) return 2;
+      if (ratio < 1.75) return 3;
+      if (ratio < 2.0) return 4;
+      return 5;
+
+    case 'squat':
+      if (ratio < 1.3) return 0;
+      if (ratio < 1.6) return 1;
+      if (ratio < 1.9) return 2;
+      if (ratio < 2.2) return 3;
+      if (ratio < 2.5) return 4;
+      return 5;
+
+    case 'deadlift':
+      if (ratio < 1.6) return 0;
+      if (ratio < 2.0) return 1;
+      if (ratio < 2.4) return 2;
+      if (ratio < 2.8) return 3;
+      if (ratio < 3.2) return 4;
+      return 5;
+
+    case 'dips':
+      if (ratio < 0.35) return 0;
+      if (ratio < 0.45) return 1;
+      if (ratio < 0.55) return 2;
+      if (ratio < 0.7) return 3;
+      if (ratio < 1.05) return 4;
+      return 5;
+
+    case 'pullup':
+      if (ratio < 0.15) return 0;
+      if (ratio < 0.25) return 1;
+      if (ratio < 0.4) return 2;
+      if (ratio < 0.6) return 3;
+      if (ratio < 0.9) return 4;
+      return 5;
+
+    case 'ohp':
+      if (ratio < 0.6) return 0;
+      if (ratio < 0.75) return 1;
+      if (ratio < 0.9) return 2;
+      if (ratio < 1.05) return 3;
+      if (ratio < 1.2) return 4;
+      return 5;
+
+    case 'bicepCurl':
+      if (ratio < 0.4) return 0;
+      if (ratio < 0.5) return 1;
+      if (ratio < 0.65) return 2;
+      if (ratio < 0.8) return 3;
+      if (ratio < 0.95) return 4;
+      return 5;
+
+    default:
+      return 0;
+  }
+};
+
+// Calculate muscle points
+export const calculateMusclePoints = (stats, unit = 'kg') => {
+  const points = {
+    Chest: 0,
+    Back: 0,
+    Shoulders: 0,
+    Biceps: 0,
+    Triceps: 0,
+    Legs: 0,
+    Hams: 0,
+    Forearms: 0,
   };
 
-  const ranks = {};
+  const bw = stats.bodyweight;
 
   // Bench
-  if (bench < 1 * bodyweight) ranks.bench = 0;
-  else if (bench >= 1 && bench < 1.25) { ranks.bench = 1; muscles.chest=1; }
-  else if (bench >= 1.25 && bench < 1.5) { ranks.bench = 2; muscles.chest=2; muscles.triceps=1; }
-  else if (bench >= 1.5 && bench < 1.75) { ranks.bench = 3; muscles.chest=3; muscles.triceps=2; }
-  else if (bench >= 1.75 && bench < 2) { ranks.bench = 4; muscles.chest=4; muscles.triceps=3; }
-  else { ranks.bench = 5; muscles.chest=5; muscles.triceps=4; }
+  const benchRank = calculateRank('bench', stats.bench, bw, unit);
+  points.Chest += Math.max(0, benchRank - 1);
+  points.Triceps += Math.max(0, benchRank - 2);
 
   // Squat
-  if (squat < 1.3 * bodyweight) ranks.squat=0;
-  else if (squat >= 1.3 && squat < 1.6) { ranks.squat=1; muscles.legs=1; }
-  else if (squat >=1.6 && squat < 1.9) { ranks.squat=2; muscles.legs=2; muscles.hams=1; }
-  else if (squat >=1.9 && squat < 2.2) { ranks.squat=3; muscles.legs=3; muscles.hams=2; }
-  else if (squat >=2.2 && squat < 2.5) { ranks.squat=4; muscles.legs=4; muscles.hams=2; }
-  else { ranks.squat=5; muscles.legs=5; muscles.hams=3; }
+  const squatRank = calculateRank('squat', stats.squat, bw, unit);
+  points.Legs += Math.max(0, squatRank);
+  points.Hams += Math.max(0, squatRank - 1);
 
   // Deadlift
-  if (deadlift < 1.6 * bodyweight) ranks.deadlift=0;
-  else if (deadlift >=1.6 && deadlift <2) { ranks.deadlift=1; muscles.legs=1; muscles.hams=1; muscles.forearms=1; }
-  else if (deadlift >=2 && deadlift<2.4) { ranks.deadlift=2; muscles.legs=2; muscles.hams=2; muscles.back=1; muscles.forearms=2; }
-  else if (deadlift >=2.4 && deadlift<2.8) { ranks.deadlift=3; muscles.legs=3; muscles.hams=3; muscles.back=2; muscles.forearms=3; }
-  else if (deadlift >=2.8 && deadlift<3.2) { ranks.deadlift=4; muscles.legs=3; muscles.hams=4; muscles.back=2; muscles.forearms=4; }
-  else { ranks.deadlift=5; muscles.legs=4; muscles.hams=5; muscles.back=3; muscles.forearms=5; }
+  const deadRank = calculateRank('deadlift', stats.deadlift, bw, unit);
+  points.Legs += Math.max(0, deadRank - 1);
+  points.Back += Math.max(0, deadRank - 2);
+  points.Forearms += Math.max(0, deadRank - 1);
+  points.Hams += Math.max(0, deadRank - 1);
 
   // Dips
-  if (dips < 0.35 * bodyweight) ranks.dips=0;
-  else if (dips >=0.35 && dips<0.45) { ranks.dips=1; muscles.triceps=1; }
-  else if (dips >=0.45 && dips<0.55) { ranks.dips=2; muscles.triceps=2; muscles.shoulders=1; muscles.chest=1; }
-  else if (dips >=0.55 && dips<0.7) { ranks.dips=3; muscles.triceps=3; muscles.shoulders=2; muscles.chest=2; }
-  else if (dips >=0.7 && dips<1.05) { ranks.dips=4; muscles.triceps=4; muscles.shoulders=2; muscles.chest=2; }
-  else { ranks.dips=5; muscles.triceps=5; muscles.shoulders=3; muscles.chest=3; }
+  const dipsRank = calculateRank('dips', stats.dips, bw, unit);
+  points.Triceps += Math.max(0, dipsRank - 1);
+  points.Shoulders += Math.max(0, dipsRank - 2);
+  points.Chest += Math.max(0, dipsRank - 2);
 
-  // Pullup
-  if (pullup < 0.15*bodyweight) ranks.pullup=0;
-  else if (pullup >=0.15 && pullup<0.25) { ranks.pullup=1; muscles.back=1; muscles.forearms=1; }
-  else if (pullup >=0.25 && pullup<0.4) { ranks.pullup=2; muscles.back=2; muscles.forearms=2; }
-  else if (pullup >=0.4 && pullup<0.6) { ranks.pullup=3; muscles.back=3; muscles.forearms=3; }
-  else if (pullup >=0.6 && pullup<0.9) { ranks.pullup=4; muscles.back=4; muscles.forearms=4; }
-  else { ranks.pullup=5; muscles.back=5; muscles.forearms=5; }
+  // Pullups
+  const pullRank = calculateRank('pullup', stats.pullup, bw, unit);
+  points.Back += Math.max(0, pullRank - 1);
+  points.Forearms += Math.max(0, pullRank - 1);
 
   // OHP
-  if (ohp < 0.6*bodyweight) ranks.ohp=0;
-  else if (ohp >=0.6 && ohp<0.75) { ranks.ohp=1; muscles.shoulders=1; }
-  else if (ohp >=0.75 && ohp<0.9) { ranks.ohp=2; muscles.shoulders=2; muscles.chest=1; }
-  else if (ohp >=0.9 && ohp<1.05) { ranks.ohp=3; muscles.shoulders=3; muscles.chest=2; }
-  else if (ohp >=1.05 && ohp<1.2) { ranks.ohp=4; muscles.shoulders=4; muscles.chest=2; }
-  else { ranks.ohp=5; muscles.shoulders=5; muscles.chest=3; }
+  const ohpRank = calculateRank('ohp', stats.ohp, bw, unit);
+  points.Shoulders += Math.max(0, ohpRank - 1);
+  points.Chest += Math.max(0, ohpRank - 2);
 
   // Bicep Curl
-  if (bicepCurl < 0.4*bodyweight) ranks.bicepCurl=0;
-  else if (bicepCurl >=0.4 && bicepCurl<0.5) { ranks.bicepCurl=1; muscles.biceps=1; }
-  else if (bicepCurl >=0.5 && bicepCurl<0.65) { ranks.bicepCurl=2; muscles.biceps=2; }
-  else if (bicepCurl >=0.65 && bicepCurl<0.8) { ranks.bicepCurl=3; muscles.biceps=3; }
-  else if (bicepCurl >=0.8 && bicepCurl<0.95) { ranks.bicepCurl=4; muscles.biceps=4; }
-  else { ranks.bicepCurl=5; muscles.biceps=5; }
+  const curlRank = calculateRank('bicepCurl', stats.bicepCurl, bw, unit);
+  points.Biceps += curlRank;
 
-  return { ranks, muscles };
-}
+  return points;
+};

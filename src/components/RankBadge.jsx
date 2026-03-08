@@ -1,23 +1,19 @@
-// src/components/RankBadge.jsx
 import React from 'react';
-import { RANKS } from '../utils/calculateRanks';
+import { RANKS, calculateRank } from '../utils/calculateRanks';
 
-function RankBadge({ rank }) {
+function RankBadge({ exercise, value, bodyweight }) {
+  const rankIndex = calculateRank(exercise, value, bodyweight);
+  const rankName = RANKS[rankIndex] || 'Beginner';
+
   return (
-    <span
-      style={{
-        display: 'inline-block',
-        padding: '4px 8px',
-        marginLeft: '8px',
-        borderRadius: '4px',
-        backgroundColor: ['#d3d3d3','#a0c4ff','#90be6d','#f9c74f','#f3722c','#9d4edd'][rank] || '#ccc',
-        color: '#fff',
-        fontWeight: 'bold',
-        minWidth: '80px',
-        textAlign: 'center',
-      }}
-    >
-      {RANKS[rank]}
+    <span style={{
+      padding: '4px 8px',
+      borderRadius: '4px',
+      backgroundColor: '#eee',
+      marginRight: '4px',
+      fontWeight: 'bold'
+    }}>
+      {rankName}
     </span>
   );
 }
