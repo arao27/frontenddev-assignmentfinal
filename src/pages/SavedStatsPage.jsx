@@ -75,7 +75,7 @@ function SavedStatsPage() {
         <h3>Your Overall Percentage Rank</h3>
         <div className="percent-wrapper">
           <span className="percent-number">{userPercent}%</span>
-          <span className="percent-text"> OF MEN WORLDWIDE</span>
+          <span className="percent-text"> OF PEOPLE WORLDWIDE</span>
         </div>
       </div>
 

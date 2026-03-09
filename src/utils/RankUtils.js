@@ -1,82 +1,57 @@
+// src/utils/RankUtils.jsx
+
+// Rank names
 export const RANKS = ["Beginner", "Novice", "Intermediate", "Advanced", "Elite", "Olympian"];
 
-// Convert lbs to kg
-export const toKg = (value, unit) => unit === 'lbs' ? value / 2.20462 : value;
+// Convert lbs to kg safely
+const toKg = (value, unit) => {
+  if (value == null || value === "") return 0;
+  return unit === "lbs" ? value / 2.20462 : value;
+};
 
-// Calculate rank per exercise
-export const calculateRank = (exercise, value, bodyweight, unit = 'kg') => {
-  if (value == null || value === '' || bodyweight == null || bodyweight === '') return 0; // Beginner
-
-  const valKg = toKg(value, unit);
-  const bwKg = toKg(bodyweight, unit);
-  const ratio = valKg / bwKg;
-
-  switch (exercise) {
-    case 'bench':
-      if (ratio < 1.0) return 0;
-      if (ratio < 1.25) return 1;
-      if (ratio < 1.5) return 2;
-      if (ratio < 1.75) return 3;
-      if (ratio < 2.0) return 4;
-      return 5;
-
-    case 'squat':
-      if (ratio < 1.3) return 0;
-      if (ratio < 1.6) return 1;
-      if (ratio < 1.9) return 2;
-      if (ratio < 2.2) return 3;
-      if (ratio < 2.5) return 4;
-      return 5;
-
-    case 'deadlift':
-      if (ratio < 1.6) return 0;
-      if (ratio < 2.0) return 1;
-      if (ratio < 2.4) return 2;
-      if (ratio < 2.8) return 3;
-      if (ratio < 3.2) return 4;
-      return 5;
-
-    case 'dips':
-      if (ratio < 0.35) return 0;
-      if (ratio < 0.45) return 1;
-      if (ratio < 0.55) return 2;
-      if (ratio < 0.7) return 3;
-      if (ratio < 1.05) return 4;
-      return 5;
-
-    case 'pullup':
-      if (ratio < 0.15) return 0;
-      if (ratio < 0.25) return 1;
-      if (ratio < 0.4) return 2;
-      if (ratio < 0.6) return 3;
-      if (ratio < 0.9) return 4;
-      return 5;
-
-    case 'ohp':
-      if (ratio < 0.6) return 0;
-      if (ratio < 0.75) return 1;
-      if (ratio < 0.9) return 2;
-      if (ratio < 1.05) return 3;
-      if (ratio < 1.2) return 4;
-      return 5;
-
-    case 'bicepCurl':
-      if (ratio < 0.4) return 0;
-      if (ratio < 0.5) return 1;
-      if (ratio < 0.65) return 2;
-      if (ratio < 0.8) return 3;
-      if (ratio < 0.95) return 4;
-      return 5;
-
-    default:
-      return 0;
+// Gender-specific thresholds
+const EXERCISE_THRESHOLDS = {
+  male: {
+    bench: [1.0, 1.25, 1.5, 1.75, 2.0],
+    squat: [1.3, 1.6, 1.9, 2.2, 2.5],
+    deadlift: [1.6, 2.0, 2.4, 2.8, 3.2],
+    dips: [0.35, 0.45, 0.55, 0.7, 1.05],
+    pullup: [0.15, 0.25, 0.4, 0.6, 0.9],
+    ohp: [0.6, 0.75, 0.9, 1.05, 1.2],
+    bicepCurl: [0.4, 0.5, 0.65, 0.8, 0.95],
+  },
+  female: {
+    bench: [0.65, 0.85, 1, 1.2, 1.5],
+    squat: [0.95, 1.2, 1.5, 1.7, 1.95],
+    deadlift: [1.05, 1.3, 1.75, 2.1, 2.4],
+    dips: [0.2, 0.3, 0.4, 0.5, 0.7],
+    pullup: [0.05, 0.1, 0.25, 0.4, 0.55],
+    ohp: [0.3, 0.45, 0.6, 0.75, 0.9],
+    bicepCurl: [0.2, 0.3, 0.4, 0.5, 0.6],
   }
 };
 
-// Calculate muscle points for each muscle group
-export const calculateMusclePoints = (stats, unit = 'kg') => {
-  // Initialize each muscle to 0
-  const points = {
+// Safely calculate rank for a single exercise
+export const calculateRank = (exercise, value, bodyweight, gender = "male", unit = "kg") => {
+  if (!value || !bodyweight) return 0; // Beginner if missing data
+
+  const bwKg = toKg(bodyweight, unit);
+  const valKg = toKg(value, unit);
+  if (bwKg === 0) return 0;
+
+  const thresholds = EXERCISE_THRESHOLDS?.[gender]?.[exercise];
+  if (!thresholds) return 0;
+
+  const ratio = valKg / bwKg;
+  for (let i = 0; i < thresholds.length; i++) {
+    if (ratio < thresholds[i]) return i; // Return rank index
+  }
+  return thresholds.length; // Top rank (Olympian)
+};
+
+// Calculate muscle ranks: pick the highest contributing exercise for each muscle
+export const calculateMusclePoints = (stats, unit = "kg") => {
+  if (!stats || !stats.bodyweight) return {
     Chest: 0,
     Back: 0,
     Shoulders: 0,
@@ -87,43 +62,58 @@ export const calculateMusclePoints = (stats, unit = 'kg') => {
     Forearms: 0,
   };
 
+  const gender = stats.gender || "male";
   const bw = stats.bodyweight;
 
-  // Helper: update muscle only if this exercise gives a higher rank
-  const updateMuscle = (muscle, rank) => {
-    points[muscle] = Math.max(points[muscle], rank);
+  const muscles = {
+    Chest: 0,
+    Back: 0,
+    Shoulders: 0,
+    Biceps: 0,
+    Triceps: 0,
+    Legs: 0,
+    Hams: 0,
+    Forearms: 0,
   };
 
-  // Calculate ranks for each exercise
-  const benchRank = calculateRank('bench', stats.bench, bw, unit);
-  updateMuscle('Chest', benchRank);
-  updateMuscle('Triceps', benchRank - 1 > 0 ? benchRank - 1 : 0);
+  const updateMuscle = (muscle, rank) => {
+    if (rank > muscles[muscle]) muscles[muscle] = rank;
+  };
 
-  const squatRank = calculateRank('squat', stats.squat, bw, unit);
-  updateMuscle('Legs', squatRank);
-  updateMuscle('Hams', squatRank - 1 > 0 ? squatRank - 1 : 0);
+  try {
+    const benchRank = calculateRank("bench", stats.bench, bw, gender, unit);
+    updateMuscle("Chest", benchRank);
+    updateMuscle("Triceps", benchRank);
 
-  const deadRank = calculateRank('deadlift', stats.deadlift, bw, unit);
-  updateMuscle('Legs', deadRank);
-  updateMuscle('Back', deadRank - 1 > 0 ? deadRank - 1 : 0);
-  updateMuscle('Forearms', deadRank - 1 > 0 ? deadRank - 1 : 0);
-  updateMuscle('Hams', deadRank - 1 > 0 ? deadRank - 1 : 0);
+    const squatRank = calculateRank("squat", stats.squat, bw, gender, unit);
+    updateMuscle("Legs", squatRank);
+    updateMuscle("Hams", squatRank);
 
-  const dipsRank = calculateRank('dips', stats.dips, bw, unit);
-  updateMuscle('Triceps', dipsRank);
-  updateMuscle('Shoulders', dipsRank - 1 > 0 ? dipsRank - 1 : 0);
-  updateMuscle('Chest', dipsRank - 1 > 0 ? dipsRank - 1 : 0);
+    const deadRank = calculateRank("deadlift", stats.deadlift, bw, gender, unit);
+    updateMuscle("Legs", deadRank);
+    updateMuscle("Back", deadRank);
+    updateMuscle("Forearms", deadRank);
+    updateMuscle("Hams", deadRank);
 
-  const pullRank = calculateRank('pullup', stats.pullup, bw, unit);
-  updateMuscle('Back', pullRank);
-  updateMuscle('Forearms', pullRank);
+    const dipsRank = calculateRank("dips", stats.dips, bw, gender, unit);
+    updateMuscle("Triceps", dipsRank);
+    updateMuscle("Shoulders", dipsRank);
+    updateMuscle("Chest", dipsRank);
 
-  const ohpRank = calculateRank('ohp', stats.ohp, bw, unit);
-  updateMuscle('Shoulders', ohpRank);
-  updateMuscle('Chest', ohpRank - 1 > 0 ? ohpRank - 1 : 0);
+    const pullRank = calculateRank("pullup", stats.pullup, bw, gender, unit);
+    updateMuscle("Back", pullRank);
+    updateMuscle("Forearms", pullRank);
 
-  const curlRank = calculateRank('bicepCurl', stats.bicepCurl, bw, unit);
-  updateMuscle('Biceps', curlRank);
+    const ohpRank = calculateRank("ohp", stats.ohp, bw, gender, unit);
+    updateMuscle("Shoulders", ohpRank);
+    updateMuscle("Chest", ohpRank);
 
-  return points;
+    const curlRank = calculateRank("bicepCurl", stats.bicepCurl, bw, gender, unit);
+    updateMuscle("Biceps", curlRank);
+
+  } catch (e) {
+    console.error("Error calculating muscle points:", e);
+  }
+
+  return muscles;
 };

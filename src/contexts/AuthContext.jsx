@@ -1,55 +1,66 @@
+// src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { auth, db } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // current logged-in user
-  const [users, setUsers] = useState({}); // all registered users
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load users and current user from localStorage on mount
   useEffect(() => {
-    const storedUsers = localStorage.getItem("users");
-    if (storedUsers) setUsers(JSON.parse(storedUsers));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const docRef = doc(db, "users", firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
+        const username = docSnap.exists() && docSnap.data().username ? docSnap.data().username : firebaseUser.email;
+        setUser({ uid: firebaseUser.uid, username });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
 
-    const current = localStorage.getItem("currentUser");
-    if (current) setUser(JSON.parse(current));
+    return () => unsubscribe();
   }, []);
 
-  // Save users to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [users]);
+  const signup = async (email, password, username) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
 
-  const login = (username, password) => {
-    if (users[username] && users[username].password === password) {
-      setUser(users[username]);
-      localStorage.setItem("currentUser", JSON.stringify(users[username]));
+      await setDoc(doc(db, "users", uid), {
+        username,
+        email,
+        createdAt: new Date()
+      });
+
       return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
-    return { success: false, message: "Invalid credentials" };
   };
 
-  const signup = (username, password) => {
-    if (users[username]) {
-      return { success: false, message: "Username already exists" };
+  const login = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
-
-    const newUser = { username, password };
-    const updatedUsers = { ...users, [username]: newUser };
-    setUsers(updatedUsers);
-
-    setUser(newUser);
-    localStorage.setItem("currentUser", JSON.stringify(newUser));
-    return { success: true };
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("currentUser");
-  };
+  const logout = async () => await signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

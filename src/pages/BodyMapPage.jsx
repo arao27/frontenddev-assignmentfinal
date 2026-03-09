@@ -1,10 +1,11 @@
+// src/pages/BodyMapPage.jsx
 import React from "react";
 import { useStats } from "../contexts/StatsContext";
-import { calculateMusclePoints, calculateRank } from "../utils/RankUtils";
+import { calculateMusclePoints, calculateRank, RANKS } from "../utils/RankUtils";
 import "./BodyMapPage.css";
 
 function BodyMapPage() {
-  const { stats } = useStats();
+  const { stats, exercises } = useStats();
   const unit = "kg";
 
   const rankColors = {
@@ -16,8 +17,7 @@ function BodyMapPage() {
     Olympian: "gold",
   };
 
-  const rankNames = ["Beginner","Novice","Intermediate","Advanced","Elite","Olympian"];
-
+  // Muscle Map: rank from muscle points
   const getRankFromPoints = (points) => {
     if (points >= 5) return "Olympian";
     if (points >= 4) return "Elite";
@@ -27,19 +27,20 @@ function BodyMapPage() {
     return "Beginner";
   };
 
-  // Muscle Map
   const musclePoints = calculateMusclePoints(stats, unit);
 
-  // Exercises mapping to stat keys
-  const exerciseMap = {
-    Bench: "bench",
-    Squat: "squat",
-    Deadlift: "deadlift",
-    Pullups: "pullup",
-    Dips: "dips",
-    OHP: "ohp",
-    "Bicep Curl": "bicepCurl",
-  };
+  // Exercise Map: use dynamic exercises from StatsContext
+  const exerciseRanks = {};
+  exercises.forEach((ex) => {
+    const rankIndex = calculateRank(
+      ex.name,
+      stats[ex.name],
+      stats.bodyweight,
+      stats.gender,
+      unit
+    );
+    exerciseRanks[ex.display] = RANKS[rankIndex] || "Beginner";
+  });
 
   return (
     <div className="bodymap-page">
@@ -68,11 +69,8 @@ function BodyMapPage() {
 
         {/* RIGHT: Exercise Map */}
         <div className="exercise-map">
-          {Object.keys(exerciseMap).map((exercise) => {
-            const statKey = exerciseMap[exercise];
-            const rankIndex = calculateRank(statKey, stats[statKey], stats.bodyweight, unit);
-            const rank = rankNames[rankIndex] || "Beginner";
-
+          {Object.keys(exerciseRanks).map((exercise) => {
+            const rank = exerciseRanks[exercise];
             return (
               <div key={exercise} className="muscle-row">
                 <div

@@ -1,0 +1,9 @@
+[
+  { "name": "bench", "display": "Bench Press" },
+  { "name": "squat", "display": "Squat" },
+  { "name": "deadlift", "display": "Deadlift" },
+  { "name": "dips", "display": "Dips" },
+  { "name": "pullup", "display": "Pullups" },
+  { "name": "ohp", "display": "Overhead Press" },
+  { "name": "bicepCurl", "display": "Bicep Curl" }
+]
